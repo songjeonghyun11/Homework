@@ -1,0 +1,94 @@
+def_two_sided_p_value(x: float, mu: float = 0, sigma: float = 1) -> float:
+    """
+    mu(평균)와 sigma(표준편차)를 따르는 정규분포에서 x같이 극단전인 값이 나올 확률?"""
+    
+    if x >= mu:
+        #만약 x가 평균보다  크다면 x보다 큰 부분이 꼬리다.
+        return 2 * normal_probability_above(x, mu, sigma)
+    else:
+        #만약 x가 평균보다 작다면 x보다 작은 부분이 꼬리다.
+        return 2 * normal_probability_below(x, mu, sigma)
+    
+two_sided_p_value(529.5, mu_0, sigma_0) #0.062
+
+import random
+
+extreme_value_count = 0
+for _ in range(1000):
+    num_heads = sum(1 if random.random() < 0.5 else 0: #앞면이 나온 경우를 세어본다.
+                    for in range(1000))                # 동전을 1000번 던져서
+    if num_heads >= 530 or num_heads <= 470:           #그리고 극한 값이
+        extreme_value_count += 1                       #몇 번 나오는지 세어본다
+#p-value was 0.062 => ~62 extreme values out of 1000
+assert 59 < extreme_value_count < 65, f"{extreme_value_count}"
+
+two_sided_p_value(531.5, mu_0, sigma_0) #0.0463
+
+upper_p_value = normal_probability_above
+lower_p_value = normal_probability_below
+
+upper_p_value(524.5, mu_0, sigma_0) # 0.061
+upper_p_value(526.5, mu_0, sigma_0) # 0.047
+
+
+#신뢰구간 
+math,sqrt(p * (1 - p)/ 1000)
+
+p_hat = 525/1000
+mu = p_hat
+sigma = math.sqrt(p_hat * (1 - p_hat)/ 1000) #0.0158
+normal_two_sided_bounds(0.95, mu, sigma) #[0.4940, 0.5560]
+
+p_hat = 540 / 1000
+mu = p_hat
+sigma = math.sqrt(p_hat * (1 - p_hat) / 1000) #0.0158
+normal_two_sided_bounds(0.95, mu, sigma) # [0.5091,  0.5709]
+
+#해킹
+from typing import List
+
+def run_experiment() -> List[bool]:
+    """동전을 1000번 던져서 True = 앞면, False = 뒷면"""
+    return [random.random() < 0.5 for _ in range(1000)]
+
+def reject_fairness(experiment: List[bool]) -> bool:
+    """신뢰구간을 5%로 설정"""
+    num_heads = len([flip for flip in experiment if flip])
+    return num_heads < 469 or num_heads > 531
+
+random.seed(0)
+experiments = [run_experiment() for _ in range(1000)]
+num_rejections = len([experiment
+                      for experiment in experiments
+                      if reject_fairness(experiment)])
+
+assert num_rejections == 46
+
+#예시 test해보기
+
+def estimated_parameters(N: int, n: int ) -> Tuple[float, float]:
+    p = n/N
+    sigma = math.sqrt(p * (1 - p) / N)
+    return p, sigma
+
+def a_b_test_statistic(N_A: int, n_A: int, N_B: int, n_B: int) -> float:
+    p_A, sigma_A = estimated_parameters(N_A, n_A)
+    p_B, sigma_B = estimated_parameters(N_B, n_B)
+    return (p_B - p_A) / math.sqrt(sigma_A ** 2 + sigma_B ** 2)
+
+z = a_b_test_statistic(1000, 200, 1000, 180) # -1.14
+two sided_p_value(z) #0.254
+z = a_b_test_statistic(1000, 200, 1000, 150) #-2.94
+two_sided_p_value(z)                 #0.003
+
+#베이스 추론
+def B(alpha: float, beta: float) -> float:
+"""모든 확률값의 합이 1이 되도록 해주는 정규화 값""" 
+     return math.gamma(alpha) * math.gamma(beta) / math.gamma(alpha + beta)
+ 
+def beta_pdf(x: float, alpha: float, beta: float) -> float:
+    if x <= 0 or x >= 1:
+        return 0
+    return x ** (alpha - 1) * (1 - x) ** (beta -1) / B(alpha, beta)
+
+alpha / (alpha + beta)
