@@ -1,0 +1,49 @@
+from collections import Counter
+import matplotlib.pyplot as plt
+
+num_friends = [100, 49, 41, 40, 25]
+               
+friend_counts = Counter(num_friends)
+xs = range(101)
+ys = [friend_counts[x] for x in xs]
+plt.bar(xs, ys)
+plt.axis([0, 101, 0 ,25])
+plt.title("Histogram of Friend Counts")
+plt.xlabel("# of friends")
+plt.ylabel("# of people")
+plt.show()
+
+
+from scratch.linear_algebra import dot
+
+def convariance(xs: List[float], ys: List[float]) -> float:
+    assert len(xs) == len(ys), "xs and ys must have same number of elements"
+    
+    return dot(de_mean(xs), de_mean(ys)) / (len(xs) - 1)
+
+assert 22.42 < convariance(num_friends, daily_minutes) < 22.43
+assert 22.42 / 60 <convariance(num_friends, daily_hours) < 22.43 / 60
+
+def correlation(xs: List[float], ys: List[float]) -> float:
+    """xs와 ys의 값이 각각의 평균에서 얼마나 멀리 떨어져 있는지 계산"""
+    stdev_x = standard_deviation(xs)
+    stdev_y = standard_deviation(ys)
+    if stdev_x > 0 and stdev_y > 0:
+        return covariance(xs, ys) / stdev_x / stdev_y
+    else:
+        return 0 #편차가 존재하지 않는다면 상관관계는 0
+
+assert 0.24 < correlation(num_friends, daily_minutes) < 0.25
+assert 0.24 < correlation(num_friends, daily_hours) < 0.25
+
+outlier = num_friends.index(100) #이상치의 인덱스
+num_friends_good = [x for i, x in enumerate(num_friends)
+                    if i != outlier]
+
+daily_minutes_good = [x for i, x in enumerate(daily_minutes)
+                      if i != outlier]
+
+daily_hours_good = [dm/ 60 for dm in daily_minutes_good]
+
+assert 0.57 < correlation(num_friends_good, daily_minutes_good) < 0.58
+assert 0.57 < correlation(num_friends_good, daily_hours_good) < 0.58
